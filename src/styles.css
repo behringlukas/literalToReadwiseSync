@@ -6,6 +6,7 @@
     padding: 2px 8px 2px 8px;
     border-radius: 5px;
     border: none;
+    font-size: 14px;
 }
 
 h1 {
@@ -63,4 +64,54 @@ button {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.toolbar {
+    display: flex;
+    flex-direction: row;
+    align-items: right;
+    border-bottom: 1px solid #000000;
+}
+
+.iconButton {
+    background-color: transparent;
+    width: auto;
+}
+
+.bookContainer {
+    background-color: #f1f1f1;
+    display: flex;
+    flex-direction: row;
+}
+
+.bookInfo {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.title {
+    margin: 2px;
+}
+
+.author {
+    font-size: 13px;
+    color: #a9a9a9;
+    margin: 2px;
+}
+
+.highlightsSync {
+    display: flex;
+    flex-direction: row;
+}
+
+.highlightsButton {
+    background-color: #696969;
+    color: #ffffff;
+}
+
+.syncButton {
+    background-color: #ffffff;
+    border-color: #000000;
+    color: #000000;
 }

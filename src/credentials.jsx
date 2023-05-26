@@ -1,21 +1,41 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import useFetchLiteralUser from "./useFetchLiteralUser.jsx";
+import axios from "axios";
 import "./styles.css";
 
-function Credentials() {
-  const inputRef = useRef(null);
+function Credentials({ onCredentialsChange }) {
   const navigate = useNavigate();
   const [handle, setHandle] = useState("");
-  console.log(handle);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleClick = () => {
-    setHandle(inputRef.current.value);
-    navigate("/syncList");
+  //can be deleted later
+  useEffect(() => {
+    onCredentialsChange(user, handle);
+  }, [user]);
+
+  const handleSave = () => {
+    setLoading(true);
+    axios
+      .post("https://literal.club/graphql/", {
+        query:
+          "query getProfileParts($handle: String!) {profile(where: { handle: $handle }) {\n  id   handle  name   bio  image   invitedByProfileId }}",
+        variables: {
+          handle: handle,
+        },
+      })
+      .then((response) => {
+        setUser(response.data.data.profile.id);
+        navigate("/syncList");
+      })
+      .catch((error) => {
+        setError(error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
-
-  const user = useFetchLiteralUser(handle);
-  console.log(user);
 
   // Check if data is available and has at least one item
   // const quote = data?.momentsByHandleAndBookId?.[0]?.quote || "";
@@ -31,7 +51,7 @@ function Credentials() {
           type="text"
           name="lithandle"
           placeholder="Enter your Literal handle"
-          ref={inputRef}
+          onChange={(e) => setHandle(e.target.value)}
         />
       </div>
       <div className="syncTo">
@@ -49,9 +69,12 @@ function Credentials() {
         />
       </div>
       <div>
-        <button onClick={handleClick}>Save & Continue</button>
+        <button onClick={handleSave}>Save & Continue</button>
         <p className="hint">A hint how data is stored will be displayed here</p>
       </div>
+      {loading && <p>Loading...</p>}
+      {error && <p>Error!</p>}
+      {user && <p>User: </p>}
     </div>
   );
 }

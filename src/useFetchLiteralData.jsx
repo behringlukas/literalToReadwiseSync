@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-function useFetchLiteralData() {
+function useFetchBooks(userId, handle) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -16,11 +16,18 @@ function useFetchLiteralData() {
           limit: 400,
           offset: 0,
           readingStatus: "FINISHED",
-          profileId: "cl44kmp6a2540030ivrkn652tb8",
+          profileId: userId,
         },
       })
-      .then((response) => {
-        setData(response.data.data);
+      .then(async (response) => {
+        const finishedBooks = response.data.data.booksByReadingStateAndProfile;
+        const bookIds = finishedBooks.map((book) => book.id);
+        const booksWithHighlights = await useFetchHighlights(handle, bookIds);
+        console.log(booksWithHighlights);
+        const filteredBooks = booksWithHighlights.filter((book) => {
+          return book.data.momentsByHandleAndBookId.length > 0;
+        });
+        setData(filteredBooks);
       })
       .catch((error) => {
         setError(error);
@@ -28,9 +35,33 @@ function useFetchLiteralData() {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [userId, handle]);
 
   return { data, loading, error };
 }
 
-export default useFetchLiteralData;
+async function useFetchHighlights(handle, bookIds) {
+  const requests = bookIds.map((bookId) =>
+    axios.post("https://literal.club/graphql/", {
+      query:
+        "query momentsByHandleAndBookId($bookId: String!\n    $handle: String!\n  ) {\n    momentsByHandleAndBookId(\n      bookId: $bookId\n      handle: $handle\n    ) {\n        id\n        note\n        quote\n        where\n        bookId\n        createdAt\n     }\n  }\n", // Your query here
+      variables: {
+        bookId: bookId,
+        handle: handle,
+      },
+    })
+  );
+
+  try {
+    const responses = await Promise.all(requests);
+    const booksWithHighlights = responses.map((response) => {
+      const responseData = response.data;
+      return responseData;
+    });
+    return booksWithHighlights;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export default useFetchBooks;

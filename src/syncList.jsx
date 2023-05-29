@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./styles.css";
 import Book from "./book.jsx";
 import useFetchBooks from "./useFetchLiteralData.jsx";
+import { all } from "axios";
 
 function SyncList({ userId, handle }) {
   const highlights = useFetchBooks(userId, handle);
@@ -31,11 +32,21 @@ function SyncList({ userId, handle }) {
       </div>
       <div className="unsyncedContainer">
         <label>Your finished & unsynced books </label>
-        <Book />
+        {highlights?.highlights?.map(
+          (item) => (
+            console.log(item),
+            (
+              <Book
+                key={item.data.momentsByHandleAndBookId[0].bookId}
+                content={item}
+                allBooks={highlights.allBooks}
+              />
+            )
+          )
+        )}
       </div>
       <div className="syncedContainer">
         <label>Your finished & synced books </label>
-        <Book />
       </div>
     </div>
   );

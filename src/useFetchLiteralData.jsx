@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 function useFetchBooks(userId, handle) {
-  const [data, setData] = useState(null);
+  const [highlights, setHighlights] = useState(null);
+  const [allBooks, setAllBooks] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -22,12 +23,13 @@ function useFetchBooks(userId, handle) {
       .then(async (response) => {
         const finishedBooks = response.data.data.booksByReadingStateAndProfile;
         const bookIds = finishedBooks.map((book) => book.id);
+        setAllBooks(finishedBooks);
         const booksWithHighlights = await useFetchHighlights(handle, bookIds);
         console.log(booksWithHighlights);
         const filteredBooks = booksWithHighlights.filter((book) => {
           return book.data.momentsByHandleAndBookId.length > 0;
         });
-        setData(filteredBooks);
+        setHighlights(filteredBooks);
       })
       .catch((error) => {
         setError(error);
@@ -37,7 +39,10 @@ function useFetchBooks(userId, handle) {
       });
   }, [userId, handle]);
 
-  return { data, loading, error };
+  if (highlights !== undefined && highlights !== null) {
+    console.log(highlights);
+    return { highlights, allBooks, loading, error };
+  }
 }
 
 async function useFetchHighlights(handle, bookIds) {

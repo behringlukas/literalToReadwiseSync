@@ -1,14 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./styles.css";
 import Book from "./book.jsx";
 import useFetchBooks from "./useFetchLiteralData.jsx";
-import { all } from "axios";
 
 function SyncList({ userId, handle }) {
   const highlights = useFetchBooks(userId, handle);
-  console.log(highlights);
   const navigate = useNavigate();
+  const [selectedBooks, setSelectedBooks] = useState([]);
+
+  const handleSyncBook = (book) => {
+    if (selectedBooks.includes(book)) {
+      setSelectedBooks((prevSelectedBooks) =>
+        prevSelectedBooks.filter((selectedBook) => selectedBook !== book)
+      );
+    } else {
+      setSelectedBooks((prevSelectedBooks) => [...prevSelectedBooks, book]);
+    }
+  };
+
+  useEffect(() => {
+    console.log(selectedBooks);
+  }, [selectedBooks]);
 
   return (
     <div className="popup">
@@ -32,18 +45,15 @@ function SyncList({ userId, handle }) {
       </div>
       <div className="unsyncedContainer">
         <label>Your finished & unsynced books </label>
-        {highlights?.highlights?.map(
-          (item) => (
-            console.log(item),
-            (
-              <Book
-                key={item.data.momentsByHandleAndBookId[0].bookId}
-                content={item}
-                allBooks={highlights.allBooks}
-              />
-            )
-          )
-        )}
+        {highlights?.highlights?.map((item) => (
+          <Book
+            key={item.data.momentsByHandleAndBookId[0].bookId}
+            content={item}
+            allBooks={highlights.allBooks}
+            selectedBooks={selectedBooks}
+            handleSync={handleSyncBook}
+          />
+        ))}
       </div>
       <div className="syncedContainer">
         <label>Your finished & synced books </label>

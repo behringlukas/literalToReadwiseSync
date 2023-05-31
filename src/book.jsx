@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import "./styles.css";
 
-function Book({ content, allBooks }) {
+function Book({ content, allBooks, handleSync }) {
   const matchedBooks = [];
+  const [showHighlights, setShowHighlights] = useState(false);
+  const [forSync, setForSync] = useState(false);
 
   allBooks.forEach((book) => {
     const hasMatch = content.data.momentsByHandleAndBookId.some(
@@ -13,6 +15,23 @@ function Book({ content, allBooks }) {
       matchedBooks.push(book);
     }
   });
+
+  const handleMouseEnter = () => {
+    setShowHighlights(true);
+  };
+
+  const handleMouseLeave = () => {
+    setShowHighlights(false);
+  };
+
+  const handleSyncClick = (item) => {
+    if (forSync === false) {
+      setForSync(true);
+    } else {
+      setForSync(false);
+    }
+    handleSync(item);
+  };
 
   return (
     <>
@@ -27,18 +46,24 @@ function Book({ content, allBooks }) {
               <p className="author">{item.authors[0].name}</p>
             </div>
             <div className="highlightsSync">
-              <button className="highlightsButton">
+              <button
+                className="highlightsButton"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
                 {content.data.momentsByHandleAndBookId.length} highlights found
               </button>
-              {
-                /*content.data.momentsByHandleAndBookId.map(
-            (item) =>
-              //<p>{item.quote}</p>
-          )*/
-                console.log(allBooks)
-              }
-              <button className="syncButton">Sync</button>
+              <button
+                className="syncButton"
+                onClick={() => handleSyncClick(item)}
+              >
+                {forSync ? "Unsync" : "Sync"}
+              </button>
             </div>
+            {showHighlights &&
+              content.data.momentsByHandleAndBookId.map((item) => (
+                <p className="highlight">{item.quote}</p>
+              ))}
           </div>
         </div>
       ))}

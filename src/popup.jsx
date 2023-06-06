@@ -14,9 +14,12 @@ import SyncList from "./syncList.jsx";
 function Popup() {
   const [userId, setUserId] = useState("");
   const [handle, setHandle] = useState("");
-  const handleUserId = (userCredentials, handle) => {
+  const [token, setToken] = useState("");
+
+  const handleUserId = (userCredentials, handle, token) => {
     setUserId(userCredentials);
     setHandle(handle);
+    setToken(token);
   };
 
   return (
@@ -28,7 +31,7 @@ function Popup() {
         />
         <Route
           path="/syncList"
-          element={<SyncList userId={userId} handle={handle} />}
+          element={<SyncList userId={userId} handle={handle} token={token} />}
         />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

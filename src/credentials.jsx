@@ -9,11 +9,11 @@ function Credentials({ onCredentialsChange }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [token, setToken] = useState("");
 
-  //can be deleted later
   useEffect(() => {
-    onCredentialsChange(user, handle);
-  }, [user]);
+    onCredentialsChange(user, handle, token);
+  }, [user, handle, token]);
 
   const handleSave = () => {
     setLoading(true);
@@ -37,6 +37,12 @@ function Credentials({ onCredentialsChange }) {
       });
   };
 
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      handleSave();
+    }
+  };
+
   // Check if data is available and has at least one item
   // const quote = data?.momentsByHandleAndBookId?.[0]?.quote || "";
 
@@ -51,6 +57,7 @@ function Credentials({ onCredentialsChange }) {
           type="text"
           name="lithandle"
           placeholder="Enter your Literal handle"
+          onKeyDown={handleKeyPress}
           onChange={(e) => setHandle(e.target.value)}
         />
       </div>
@@ -66,10 +73,18 @@ function Credentials({ onCredentialsChange }) {
           type="password"
           name="readwisetoken"
           placeholder="Paste your Readwise access token"
+          onKeyDown={handleKeyPress}
+          onChange={(e) => setToken(e.target.value)}
         />
       </div>
       <div>
-        <button onClick={handleSave}>Save & Continue</button>
+        {token.length > 0 && handle.length > 0 ? (
+          <button onClick={handleSave} onKeyDown={handleKeyPress}>
+            Save & Continue
+          </button>
+        ) : (
+          <button disabled>Please provide a handle and token first</button>
+        )}
         <p className="hint">A hint how data is stored will be displayed here</p>
       </div>
       {loading && <p>Loading...</p>}

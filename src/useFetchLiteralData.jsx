@@ -43,6 +43,8 @@ function useFetchBooks(userId, handle) {
     console.log(highlights);
     return { highlights, allBooks, loading, error };
   }
+
+  return { highlights: [], allBooks: [], loading, error };
 }
 
 async function useFetchHighlights(handle, bookIds) {

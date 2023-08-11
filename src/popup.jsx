@@ -22,6 +22,10 @@ function Popup() {
     setToken(token);
   };
 
+  const handleSubmit = () => {
+    setShouldReload(true);
+  };
+
   return (
     <Router>
       <Routes>
@@ -31,7 +35,14 @@ function Popup() {
         />
         <Route
           path="/syncList"
-          element={<SyncList userId={userId} handle={handle} token={token} />}
+          element={
+            <SyncList
+              userId={userId}
+              handle={handle}
+              token={token}
+              onSubmit={handleSubmit}
+            />
+          }
         />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

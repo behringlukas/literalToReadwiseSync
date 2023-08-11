@@ -10,10 +10,25 @@ function Credentials({ onCredentialsChange }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [token, setToken] = useState("");
+  const [storageHandle, setStorageHandle] = useState(false);
+  const [storageToken, setStorageToken] = useState(false);
 
   useEffect(() => {
     onCredentialsChange(user, handle, token);
   }, [user, handle, token]);
+
+  useEffect(() => {
+    chrome.storage.sync.get(["handle", "token"], (res) => {
+      if (res.handle != undefined) {
+        setHandle(res.handle);
+        setStorageHandle(true);
+      }
+      if (res.token != undefined) {
+        setToken(res.token);
+        setStorageToken(true);
+      }
+    });
+  }, []);
 
   const handleSave = () => {
     setLoading(true);
@@ -59,6 +74,7 @@ function Credentials({ onCredentialsChange }) {
           placeholder="Enter your Literal handle"
           onKeyDown={handleKeyPress}
           onChange={(e) => setHandle(e.target.value)}
+          value={storageHandle ? handle : undefined}
         />
       </div>
       <div className="syncTo">
@@ -75,6 +91,7 @@ function Credentials({ onCredentialsChange }) {
           placeholder="Paste your Readwise access token"
           onKeyDown={handleKeyPress}
           onChange={(e) => setToken(e.target.value)}
+          value={storageToken ? token : undefined}
         />
       </div>
       <div>

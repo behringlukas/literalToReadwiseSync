@@ -132,3 +132,8 @@ img {
     border-color: #000000;
     color: #000000;
 }
+
+.syncedContainer {
+    pointer-events: none;
+    opacity: 0.5;
+}

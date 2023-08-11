@@ -7,63 +7,79 @@ import axios from "axios";
 
 function SyncList({ userId, handle, token }) {
   const highlights = useFetchBooks(userId, handle);
+  console.log("highlights value:", highlights);
+  console.log(highlights);
   const navigate = useNavigate();
   const [selectedBooks, setSelectedBooks] = useState([]);
+  const [syncedBefore, setSyncedBefore] = useState([]);
+  console.log("syncedBefore state:", syncedBefore);
 
   const handleSyncBook = (book) => {
-    console.log(token);
-    const updatedBooks = selectedBooks.map((selectedBook) => {
-      if (selectedBook.book.id === book.book.id) {
-        return { ...selectedBook, selected: !selectedBook.selected };
-      }
-      return selectedBook;
-    });
-
-    if (
-      !updatedBooks.some(
+    setSelectedBooks((prevSelectedBooks) => {
+      const bookIndex = prevSelectedBooks.findIndex(
         (selectedBook) => selectedBook.book.id === book.book.id
-      )
-    ) {
-      updatedBooks.push({ ...book, selected: true });
-    }
+      );
 
-    setSelectedBooks(updatedBooks);
-    console.log(selectedBooks);
+      if (bookIndex !== -1) {
+        console.log("prevSelectedBooks:", prevSelectedBooks);
+        const updatedBooks = [...prevSelectedBooks];
+        updatedBooks.splice(bookIndex, 1);
+        return updatedBooks;
+      } else {
+        const updatedBooks = { ...book, selected: true };
+        return [...prevSelectedBooks, updatedBooks];
+      }
+    });
   };
 
   useEffect(() => {
+    chrome.storage.sync.set({ handle, token }, () => {});
+    chrome.storage.sync.get(["syncedBefore"], (res) => {
+      if (res.syncedBefore != undefined) {
+        console.log("res.syncedBefore:", res.syncedBefore);
+        setSyncedBefore(res.syncedBefore);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     console.log(selectedBooks);
-  }, [selectedBooks]);
+  }, []);
 
   const handleSubmit = async () => {
-    const selectedHighlights = [];
-    for (const book of selectedBooks) {
-      const bookHighlights = book.moments.map((moment) => {
-        if (book.book.cover == "") {
-          book.book.cover = null;
-        }
-        if (moment.note == "") {
-          moment.note = null;
-        }
-        return {
-          text: moment.quote,
-          title: book.book.title,
-          author: book.book.authors[0].name,
-          image_url: book.book.cover,
-          source_url: "https://literal.club",
-          source_type: "literal_to_readwise",
-          category: "books",
-          note: moment.note,
-          location: moment.where,
-          location_type: "page",
-          highlighted_at: moment.createdAt,
-        };
-      });
-
-      selectedHighlights.push(...bookHighlights);
-    }
-
     try {
+      const selectedHighlights = [];
+      for (const book of selectedBooks) {
+        const bookHighlights = book.moments.map((moment) => {
+          if (book.book.cover == "") {
+            book.book.cover = null;
+          }
+          if (moment.note == "") {
+            moment.note = null;
+          }
+          return {
+            text: moment.quote,
+            title: book.book.title,
+            author: book.book.authors[0].name,
+            image_url: book.book.cover,
+            source_url: "https://literal.club",
+            source_type: "literal_to_readwise",
+            category: "books",
+            note: moment.note,
+            location: moment.where,
+            location_type: "page",
+            highlighted_at: moment.createdAt,
+          };
+        });
+
+        selectedHighlights.push(...bookHighlights);
+      }
+
+      const updatedSyncedBefore = syncedBefore
+        ? [...syncedBefore, ...selectedBooks]
+        : selectedBooks;
+      chrome.storage.sync.set({ syncedBefore: updatedSyncedBefore }, () => {});
+
       const response = await axios.post(
         "https://readwise.io/api/v2/highlights/",
         {
@@ -78,14 +94,29 @@ function SyncList({ userId, handle, token }) {
       );
       console.log(response.data);
       console.log(token);
-      setSelectedBooks((prevSelectedBooks) =>
-        prevSelectedBooks.map((selectedBook) => ({
+      setSelectedBooks((prevSelectedBooks) => {
+        const updatedSelectedBooks = prevSelectedBooks.map((selectedBook) => ({
           ...selectedBook,
           selected: true,
-        }))
-      );
+        }));
+        const updatedSyncedBefore = [...syncedBefore, ...updatedSelectedBooks];
+        setSelectedBooks(updatedSelectedBooks);
+        setSyncedBefore(updatedSyncedBefore);
+        return updatedSelectedBooks;
+      });
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const getUncommonBooks = () => {
+    if (syncedBefore != undefined && syncedBefore != null) {
+      const syncedBookIds = syncedBefore.map((book) => book.book.id);
+      const uncommonBooks = highlights?.highlights?.filter((highlight) => {
+        const bookId = highlight.data.momentsByHandleAndBookId[0].bookId;
+        return !syncedBookIds.includes(bookId);
+      });
+      return uncommonBooks;
     }
   };
 
@@ -109,33 +140,57 @@ function SyncList({ userId, handle, token }) {
           </svg>
         </button>
       </div>
+      <label>Your finished & unsynced books </label>
       <div className="unsyncedContainer">
-        <label>Your finished & unsynced books </label>
-        {highlights?.highlights?.map((item) =>
-          Object.hasOwn(item, "selected") == false ? (
-            <Book
-              key={item.data.momentsByHandleAndBookId[0].bookId}
-              content={item}
-              allBooks={highlights.allBooks}
-              selectedBooks={selectedBooks}
-              handleSync={handleSyncBook}
-            />
-          ) : null
-        )}
+        {getUncommonBooks()
+          ? getUncommonBooks()?.map((item) => (
+              <Book
+                key={item.data.momentsByHandleAndBookId[0].bookId}
+                content={item}
+                allBooks={highlights?.allBooks}
+                selectedBooks={selectedBooks}
+                handleSync={handleSyncBook}
+              />
+            ))
+          : highlights?.highlights?.map((item) => (
+              <Book
+                key={item.data.momentsByHandleAndBookId[0].bookId}
+                content={item}
+                allBooks={highlights?.allBooks}
+                selectedBooks={selectedBooks}
+                handleSync={handleSyncBook}
+              />
+            ))}
       </div>
+      <label>Your finished & synced books </label>
       <div className="syncedContainer">
-        <label>Your finished & synced books </label>
-        {highlights?.highlights?.map((item) =>
-          Object.hasOwn(item, "selected") == true ? (
-            <Book
-              key={item.data.momentsByHandleAndBookId[0].bookId}
-              content={item}
-              allBooks={highlights.allBooks}
-              selectedBooks={selectedBooks}
-              handleSync={handleSyncBook}
-            />
-          ) : null
-        )}
+        {syncedBefore && highlights && highlights.highlights
+          ? highlights?.highlights?.map((item) => {
+              const bookId = item.data.momentsByHandleAndBookId[0].bookId;
+              const isBookSelected = selectedBooks.some(
+                (book) => book.book.id === bookId
+              );
+              const isBookSynced = syncedBefore.some(
+                (book) => book.book.id === bookId
+              );
+
+              if (
+                (isBookSelected && !isBookSynced) ||
+                (!isBookSelected && isBookSynced)
+              ) {
+                return (
+                  <Book
+                    key={bookId}
+                    content={item}
+                    allBooks={highlights.allBooks}
+                    selectedBooks={selectedBooks}
+                    handleSync={handleSyncBook}
+                  />
+                );
+              }
+              return null;
+            })
+          : null}
       </div>
       <div className="syncSubmit">
         {selectedBooks.length > 0 ? (

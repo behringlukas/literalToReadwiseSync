@@ -12,6 +12,7 @@ function SyncList({ userId, handle, token }) {
   const navigate = useNavigate();
   const [selectedBooks, setSelectedBooks] = useState([]);
   const [syncedBefore, setSyncedBefore] = useState([]);
+  const [, forceUpdate] = useState();
   console.log("syncedBefore state:", syncedBefore);
 
   const handleSyncBook = (book) => {
@@ -48,43 +49,31 @@ function SyncList({ userId, handle, token }) {
 
   const handleSubmit = async () => {
     try {
-      const selectedHighlights = [];
-      for (const book of selectedBooks) {
-        const bookHighlights = book.moments.map((moment) => {
-          if (book.book.cover == "") {
-            book.book.cover = null;
-          }
-          if (moment.note == "") {
-            moment.note = null;
-          }
-          return {
-            text: moment.quote,
-            title: book.book.title,
-            author: book.book.authors[0].name,
-            image_url: book.book.cover,
-            source_url: "https://literal.club",
-            source_type: "literal_to_readwise",
-            category: "books",
-            note: moment.note,
-            location: moment.where,
-            location_type: "page",
-            highlighted_at: moment.createdAt,
-          };
-        });
-
-        selectedHighlights.push(...bookHighlights);
-      }
-
-      const updatedSyncedBefore = syncedBefore
-        ? [...syncedBefore, ...selectedBooks]
-        : selectedBooks;
-      chrome.storage.sync.set({ syncedBefore: updatedSyncedBefore }, () => {});
+      const selectedHighlights = selectedBooks
+        .map((book) => {
+          return book.moments.map((moment) => {
+            const cover = book.book.cover === "" ? null : book.book.cover;
+            const note = moment.note === "" ? null : moment.note;
+            return {
+              text: moment.quote,
+              title: book.book.title,
+              author: book.book.authors[0].name,
+              image_url: cover,
+              source_url: "https://literal.club",
+              source_type: "literal_to_readwise",
+              category: "books",
+              note: note,
+              location: moment.where,
+              location_type: "page",
+              highlighted_at: moment.createdAt,
+            };
+          });
+        })
+        .flat();
 
       const response = await axios.post(
         "https://readwise.io/api/v2/highlights/",
-        {
-          highlights: selectedHighlights,
-        },
+        { highlights: selectedHighlights },
         {
           headers: {
             "Content-Type": "application/json",
@@ -92,17 +81,23 @@ function SyncList({ userId, handle, token }) {
           },
         }
       );
+
       console.log(response.data);
       console.log(token);
-      setSelectedBooks((prevSelectedBooks) => {
-        const updatedSelectedBooks = prevSelectedBooks.map((selectedBook) => ({
-          ...selectedBook,
-          selected: true,
-        }));
-        const updatedSyncedBefore = [...syncedBefore, ...updatedSelectedBooks];
-        setSelectedBooks(updatedSelectedBooks);
-        setSyncedBefore(updatedSyncedBefore);
-        return updatedSelectedBooks;
+
+      const updatedSelectedBooks = selectedBooks.map((book) => ({
+        ...book,
+        selected: true,
+      }));
+      setSelectedBooks(updatedSelectedBooks);
+
+      const updatedSyncedBefore = [...syncedBefore, ...updatedSelectedBooks];
+      setSyncedBefore(updatedSyncedBefore);
+
+      chrome.storage.sync.set({ syncedBefore: updatedSyncedBefore }, () => {
+        if (chrome.runtime.lastError) {
+          console.error("Storage error:", chrome.runtime.lastError);
+        }
       });
     } catch (error) {
       console.log(error);
@@ -174,10 +169,7 @@ function SyncList({ userId, handle, token }) {
                 (book) => book.book.id === bookId
               );
 
-              if (
-                (isBookSelected && !isBookSynced) ||
-                (!isBookSelected && isBookSynced)
-              ) {
+              if (isBookSynced || isBookSelected) {
                 return (
                   <Book
                     key={bookId}

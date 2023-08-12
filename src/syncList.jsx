@@ -12,7 +12,6 @@ function SyncList({ userId, handle, token }) {
   const navigate = useNavigate();
   const [selectedBooks, setSelectedBooks] = useState([]);
   const [syncedBefore, setSyncedBefore] = useState([]);
-  const [, forceUpdate] = useState();
   console.log("syncedBefore state:", syncedBefore);
 
   const handleSyncBook = (book) => {
@@ -183,6 +182,9 @@ function SyncList({ userId, handle, token }) {
               return null;
             })
           : null}
+        {syncedBefore.length === 0 && selectedBooks.length === 0 ? (
+          <p>No synced books yet</p>
+        ) : null}
       </div>
       <div className="syncSubmit">
         {selectedBooks.length > 0 ? (

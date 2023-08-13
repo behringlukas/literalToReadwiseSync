@@ -7,7 +7,6 @@ function Credentials({ onCredentialsChange }) {
   const navigate = useNavigate();
   const [handle, setHandle] = useState("");
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [token, setToken] = useState("");
   const [storageHandle, setStorageHandle] = useState(false);
@@ -31,7 +30,6 @@ function Credentials({ onCredentialsChange }) {
   }, []);
 
   const handleSave = () => {
-    setLoading(true);
     axios
       .post("https://literal.club/graphql/", {
         query:
@@ -46,9 +44,6 @@ function Credentials({ onCredentialsChange }) {
       })
       .catch((error) => {
         setError(error);
-      })
-      .finally(() => {
-        setLoading(false);
       });
   };
 
@@ -82,7 +77,7 @@ function Credentials({ onCredentialsChange }) {
           <label>to</label>
           {/*target needed to open link in new tab, will cause the popup to close*/}
           <a href="https://readwise.io/access_token" target="_blank">
-            Click here and login to get your token
+            Click here to get your Readwise token
           </a>
         </div>
         <input
@@ -102,9 +97,11 @@ function Credentials({ onCredentialsChange }) {
         ) : (
           <button disabled>Please provide a handle and token first</button>
         )}
-        <p className="hint">A hint how data is stored will be displayed here</p>
+        <p className="hint">
+          Disclaimer: Your username and token will be saved in chrome's local
+          storage
+        </p>
       </div>
-      {loading && <p>Loading...</p>}
       {error && <p>Error!</p>}
       {user && <p>User: </p>}
     </div>

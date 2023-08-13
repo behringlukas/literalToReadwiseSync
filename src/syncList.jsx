@@ -117,21 +117,21 @@ function SyncList({ userId, handle, token }) {
   return (
     <div className="popup">
       <div className="toolbar">
-        <label>Change credentials</label>
         <button className="iconButton" onClick={() => navigate("/credentials")}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
+            width="12"
+            height="12"
+            viewBox="0 0 30 30"
+            fill="#000000"
             stroke="#000000"
-            strokeWidth="2"
+            strokeWidth="1"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <path d="M10 3H6a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h4M16 17l5-5-5-5M19.8 12H9" />
+            <path d="M28,14H8.8l4.62-4.62C13.814,8.986,14,8.516,14,8c0-0.984-0.813-2-2-2c-0.531,0-0.994,0.193-1.38,0.58l-7.958,7.958  C2.334,14.866,2,15.271,2,16s0.279,1.08,0.646,1.447l7.974,7.973C11.006,25.807,11.469,26,12,26c1.188,0,2-1.016,2-2  c0-0.516-0.186-0.986-0.58-1.38L8.8,18H28c1.104,0,2-0.896,2-2S29.104,14,28,14z" />
           </svg>
+          <label className="buttonText">Change credentials</label>
         </button>
       </div>
       <label>Your finished & unsynced books </label>

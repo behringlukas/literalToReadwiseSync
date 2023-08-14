@@ -12,6 +12,8 @@ function SyncList({ userId, handle, token }) {
   const navigate = useNavigate();
   const [selectedBooks, setSelectedBooks] = useState([]);
   const [syncedBefore, setSyncedBefore] = useState([]);
+  const [isSyncedExpanded, setIsSyncedExpanded] = useState(false);
+  const [isUnsyncedExpanded, setIsUnsyncedExpanded] = useState(true);
   console.log("syncedBefore state:", syncedBefore);
 
   const handleSyncBook = (book) => {
@@ -53,6 +55,7 @@ function SyncList({ userId, handle, token }) {
           return book.moments.map((moment) => {
             const cover = book.book.cover === "" ? null : book.book.cover;
             const note = moment.note === "" ? null : moment.note;
+            const location = moment.location === "" ? null : moment.location;
             return {
               text: moment.quote,
               title: book.book.title,
@@ -62,7 +65,7 @@ function SyncList({ userId, handle, token }) {
               source_type: "literal_to_readwise",
               category: "books",
               note: note,
-              location: moment.where,
+              location: location,
               location_type: "page",
               highlighted_at: moment.createdAt,
             };
@@ -99,7 +102,7 @@ function SyncList({ userId, handle, token }) {
         }
       });
     } catch (error) {
-      console.log(error);
+      console.log(error.response.data);
     }
   };
 
@@ -112,6 +115,16 @@ function SyncList({ userId, handle, token }) {
       });
       return uncommonBooks;
     }
+  };
+
+  const toggleSynced = () => {
+    setIsSyncedExpanded(!isSyncedExpanded);
+    setIsUnsyncedExpanded(false);
+  };
+
+  const toggleUnsynced = () => {
+    setIsUnsyncedExpanded(!isUnsyncedExpanded);
+    setIsSyncedExpanded(false);
   };
 
   return (
@@ -134,8 +147,18 @@ function SyncList({ userId, handle, token }) {
           <label className="buttonText">Change credentials</label>
         </button>
       </div>
-      <label>Your finished & unsynced books </label>
-      <div className="unsyncedContainer">
+      <label className="unsyncedLabel" onClick={toggleUnsynced}>
+        <span
+          className="chevron"
+          style={{
+            transform: isUnsyncedExpanded ? "rotate(90deg)" : "rotate(0deg)",
+          }}
+        >
+          &#x276F;
+        </span>
+        Your finished & unsynced books
+      </label>
+      <div className={isUnsyncedExpanded ? "unsyncedContainer" : "hidden"}>
         {getUncommonBooks()
           ? getUncommonBooks()?.map((item) => (
               <Book
@@ -156,8 +179,18 @@ function SyncList({ userId, handle, token }) {
               />
             ))}
       </div>
-      <label>Your finished & synced books </label>
-      <div className="syncedContainer">
+      <label className="syncedLabel" onClick={toggleSynced}>
+        <span
+          className="chevron"
+          style={{
+            transform: isSyncedExpanded ? "rotate(90deg)" : "rotate(0deg)",
+          }}
+        >
+          &#x276F;
+        </span>
+        Your finished & synced books
+      </label>
+      <div className={isSyncedExpanded ? "syncedContainer" : "hidden"}>
         {syncedBefore && highlights && highlights.highlights
           ? highlights?.highlights?.map((item) => {
               const bookId = item.data.momentsByHandleAndBookId[0].bookId;
@@ -174,8 +207,6 @@ function SyncList({ userId, handle, token }) {
                     key={bookId}
                     content={item}
                     allBooks={highlights.allBooks}
-                    selectedBooks={selectedBooks}
-                    handleSync={handleSyncBook}
                   />
                 );
               }

@@ -97,10 +97,22 @@ function Credentials({ onCredentialsChange }) {
         ) : (
           <button disabled>Please provide a handle and token first</button>
         )}
-        <p className="hint">
-          Disclaimer: Your username and token will be saved in chrome's local
-          storage
-        </p>
+        <div className="hintContainer">
+          <div className="hint">
+            Your username and token will be saved in chrome's local storage.
+            <div className="hint">
+              This extension is a third-party creation and is not affiliated
+              with or supported by{" "}
+              <a href="https://literal.club" target="_blank">
+                Literal
+              </a>{" "}
+              or{" "}
+              <a href="https://readwise.io" target="_blank">
+                Readwise.
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
       {error && <p>Error!</p>}
       {user && <p>User: </p>}

@@ -5,28 +5,25 @@ function Book({ content, allBooks, handleSync }) {
   const matchedBooks = [];
   const [showHighlights, setShowHighlights] = useState(false);
   const [forSync, setForSync] = useState(false);
+  const [flip, setFlipped] = useState(false);
 
   allBooks.forEach((book) => {
-    const hasMatch = content.data.momentsByHandleAndBookId.some(
-      (moment) => moment.bookId === book.id
+    const validMoments = content.data.momentsByHandleAndBookId.filter(
+      (moment) =>
+        moment.bookId === book.id && moment.quote && moment.quote.trim() !== ""
     );
 
-    if (hasMatch) {
+    if (validMoments.length) {
       matchedBooks.push({
         book: book,
-        moments: content.data.momentsByHandleAndBookId.filter(
-          (moment) => moment.bookId === book.id
-        ),
+        moments: validMoments,
       });
     }
   });
 
-  const handleMouseEnter = () => {
-    setShowHighlights(true);
-  };
-
-  const handleMouseLeave = () => {
-    setShowHighlights(false);
+  const handleHighlightsClick = () => {
+    setShowHighlights(!showHighlights);
+    setFlipped(!flip);
   };
 
   const handleSyncClick = (item) => {
@@ -65,22 +62,43 @@ function Book({ content, allBooks, handleSync }) {
             <div className="highlightsSync">
               <button
                 className="highlightsButton"
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
+                onClick={handleHighlightsClick}
               >
-                {content.data.momentsByHandleAndBookId.length} highlights found
+                {
+                  content.data.momentsByHandleAndBookId.filter(
+                    (moment) => moment.quote && moment.quote.trim() !== ""
+                  ).length
+                }{" "}
+                highlights found
+                <div className="highlightsArrow">
+                  <span
+                    className="chevron"
+                    style={{
+                      transform: showHighlights
+                        ? "rotate(90deg)"
+                        : "rotate(0deg)",
+                    }}
+                  >
+                    &#x276F;
+                  </span>
+                </div>
               </button>
               <button
-                className="syncButton"
+                className={`syncButton ${forSync ? "syncButtonUnsync" : ""}`}
                 onClick={() => handleSyncClick(item)}
               >
                 {forSync ? "Unsync" : "Sync"}
               </button>
             </div>
             {showHighlights &&
-              content.data.momentsByHandleAndBookId.map((item) => (
-                <p className="highlight">{item.quote}</p>
-              ))}
+              content.data.momentsByHandleAndBookId
+                .filter((moment) => moment.quote && moment.quote.trim() !== "")
+                .map((item) => (
+                  <p className="highlight">
+                    {item.quote}
+                    <div className="separator"></div>
+                  </p>
+                ))}
           </div>
         </div>
       ))}

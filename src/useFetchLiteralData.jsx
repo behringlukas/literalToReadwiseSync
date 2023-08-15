@@ -25,7 +25,6 @@ function useFetchBooks(userId, handle) {
         const bookIds = finishedBooks.map((book) => book.id);
         setAllBooks(finishedBooks);
         const booksWithHighlights = await useFetchHighlights(handle, bookIds);
-        console.log(booksWithHighlights);
         const filteredBooks = booksWithHighlights.filter((book) => {
           return book.data.momentsByHandleAndBookId.length > 0;
         });
@@ -40,7 +39,6 @@ function useFetchBooks(userId, handle) {
   }, [userId, handle]);
 
   if (highlights !== undefined && highlights !== null) {
-    console.log(highlights);
     return { highlights, allBooks, loading, error };
   }
 

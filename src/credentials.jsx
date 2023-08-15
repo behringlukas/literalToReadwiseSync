@@ -17,7 +17,7 @@ function Credentials({ onCredentialsChange }) {
   }, [user, handle, token]);
 
   useEffect(() => {
-    chrome.storage.sync.get(["handle", "token"], (res) => {
+    chrome.storage.local.get(["handle", "token"], (res) => {
       if (res.handle != undefined) {
         setHandle(res.handle);
         setStorageHandle(true);
@@ -95,7 +95,7 @@ function Credentials({ onCredentialsChange }) {
             Save & Continue
           </button>
         ) : (
-          <button disabled>Please provide a handle and token first</button>
+          <button disabled>Save & Continue</button>
         )}
         <div className="hintContainer">
           <div className="hint">
@@ -114,8 +114,11 @@ function Credentials({ onCredentialsChange }) {
           </div>
         </div>
       </div>
-      {error && <p>Error!</p>}
-      {user && <p>User: </p>}
+      {error && (
+        <p className="error">
+          There is no user with this handle. Please try again.
+        </p>
+      )}
     </div>
   );
 }

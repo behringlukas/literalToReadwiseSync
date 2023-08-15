@@ -7,14 +7,12 @@ import axios from "axios";
 
 function SyncList({ userId, handle, token }) {
   const highlights = useFetchBooks(userId, handle);
-  console.log("highlights value:", highlights);
-  console.log(highlights);
   const navigate = useNavigate();
   const [selectedBooks, setSelectedBooks] = useState([]);
   const [syncedBefore, setSyncedBefore] = useState([]);
   const [isSyncedExpanded, setIsSyncedExpanded] = useState(false);
   const [isUnsyncedExpanded, setIsUnsyncedExpanded] = useState(true);
-  console.log("syncedBefore state:", syncedBefore);
+  const [error, setError] = useState(null);
 
   const handleSyncBook = (book) => {
     setSelectedBooks((prevSelectedBooks) => {
@@ -23,7 +21,6 @@ function SyncList({ userId, handle, token }) {
       );
 
       if (bookIndex !== -1) {
-        console.log("prevSelectedBooks:", prevSelectedBooks);
         const updatedBooks = [...prevSelectedBooks];
         updatedBooks.splice(bookIndex, 1);
         return updatedBooks;
@@ -35,17 +32,12 @@ function SyncList({ userId, handle, token }) {
   };
 
   useEffect(() => {
-    chrome.storage.sync.set({ handle, token }, () => {});
-    chrome.storage.sync.get(["syncedBefore"], (res) => {
+    chrome.storage.local.set({ handle, token }, () => {});
+    chrome.storage.local.get(["syncedBefore"], (res) => {
       if (res.syncedBefore != undefined) {
-        console.log("res.syncedBefore:", res.syncedBefore);
         setSyncedBefore(res.syncedBefore);
       }
     });
-  }, []);
-
-  useEffect(() => {
-    console.log(selectedBooks);
   }, []);
 
   const handleSubmit = async () => {
@@ -84,9 +76,6 @@ function SyncList({ userId, handle, token }) {
         }
       );
 
-      console.log(response.data);
-      console.log(token);
-
       const updatedSelectedBooks = selectedBooks.map((book) => ({
         ...book,
         selected: true,
@@ -95,14 +84,10 @@ function SyncList({ userId, handle, token }) {
 
       const updatedSyncedBefore = [...syncedBefore, ...updatedSelectedBooks];
       setSyncedBefore(updatedSyncedBefore);
-
-      chrome.storage.sync.set({ syncedBefore: updatedSyncedBefore }, () => {
-        if (chrome.runtime.lastError) {
-          console.error("Storage error:", chrome.runtime.lastError);
-        }
-      });
+      chrome.storage.local.set({ syncedBefore: updatedSyncedBefore }, () => {});
     } catch (error) {
       console.log(error.response.data);
+      setError(error);
     }
   };
 
@@ -146,6 +131,11 @@ function SyncList({ userId, handle, token }) {
           </svg>
           <label className="buttonText">Change credentials</label>
         </button>
+        <button className="iconButton">
+          <a href="https://www.buymeacoffee.com/behringlukas" target="_blank">
+            ☕ Buy me a coffee
+          </a>
+        </button>
       </div>
       <label className="unsyncedLabel" onClick={toggleUnsynced}>
         <span
@@ -159,25 +149,31 @@ function SyncList({ userId, handle, token }) {
         Your finished & unsynced books
       </label>
       <div className={isUnsyncedExpanded ? "unsyncedContainer" : "hidden"}>
-        {getUncommonBooks()
-          ? getUncommonBooks()?.map((item) => (
-              <Book
-                key={item.data.momentsByHandleAndBookId[0].bookId}
-                content={item}
-                allBooks={highlights?.allBooks}
-                selectedBooks={selectedBooks}
-                handleSync={handleSyncBook}
-              />
-            ))
-          : highlights?.highlights?.map((item) => (
-              <Book
-                key={item.data.momentsByHandleAndBookId[0].bookId}
-                content={item}
-                allBooks={highlights?.allBooks}
-                selectedBooks={selectedBooks}
-                handleSync={handleSyncBook}
-              />
-            ))}
+        {getUncommonBooks() && getUncommonBooks().length > 0 ? (
+          getUncommonBooks().map((item) => (
+            <Book
+              key={item.data.momentsByHandleAndBookId[0].bookId}
+              content={item}
+              allBooks={highlights?.allBooks}
+              selectedBooks={selectedBooks}
+              handleSync={handleSyncBook}
+            />
+          ))
+        ) : highlights?.highlights && highlights?.highlights.length > 0 ? (
+          highlights?.highlights.map((item) => (
+            <Book
+              key={item.data.momentsByHandleAndBookId[0].bookId}
+              content={item}
+              allBooks={highlights?.allBooks}
+              selectedBooks={selectedBooks}
+              handleSync={handleSyncBook}
+            />
+          ))
+        ) : (
+          <p className="emptySyncContainer">
+            No unsynced finished books with highlights found.
+          </p>
+        )}
       </div>
       <label className="syncedLabel" onClick={toggleSynced}>
         <span
@@ -214,7 +210,7 @@ function SyncList({ userId, handle, token }) {
             })
           : null}
         {syncedBefore.length === 0 && selectedBooks.length === 0 ? (
-          <p>No synced books yet</p>
+          <p className="emptySyncContainer">No synced books yet</p>
         ) : null}
       </div>
       <div className="syncSubmit">
@@ -225,9 +221,27 @@ function SyncList({ userId, handle, token }) {
         ) : (
           <button disabled>Select books to sync</button>
         )}
+        {error && (
+          <p className="error">
+            Sync with Readwise not possible. Please check your token in the
+            credentials and try again.
+          </p>
+        )}
       </div>
     </div>
   );
 }
 
 export default SyncList;
+
+//TODO placeholder cover when no cover available, test for bugs, add loading state (optional), add error handling for login, buy me a coffee link (maybe), delete console.logs
+
+//DONE placeholder cover
+//WONT DO loading state
+//DONE delete console.logs
+//DONE error handling login
+//DONE error handling sync
+//DONE message when no books finished with highlights
+//DONE buy me a coffee link
+
+//TODO test for bugs and fix bug

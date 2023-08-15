@@ -109,6 +109,14 @@ button:disabled {
     align-items: center;
 }
 
+.error {
+    color: #da2727;
+    font-size: 12px;
+    text-decoration: underline;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
 .toolbar {
     display: flex;
     align-items: center;
@@ -120,6 +128,7 @@ button:disabled {
     top: 0;
     padding: 10px 0 7px 0;
     background-color: #ffffff;
+    justify-content: space-between;
 }
 
 .iconButton {
@@ -204,6 +213,12 @@ img {
     align-items: center;
 }
 
+.emptySyncContainer {
+    text-align: center;
+    font-size: 12px;
+    text-decoration: underline;
+}
+
 .highlightsArrow {
     display: flex;
     justify-content: center;
@@ -230,7 +245,7 @@ img {
 
 .syncButtonUnsync {
     background-color: #ffcccb;
-    color: rgb(187, 88, 88);
+    color: #bb5858;
 }
 
 .syncedContainer {
@@ -240,6 +255,9 @@ img {
     overflow: scroll;
     max-height: 340px;
     padding-right: 5px;
+    overflow-x: hidden;
+    max-width: 100%;
+    margin-bottom: 20px;
 }
 
 .syncedContainer .syncButton {
@@ -252,6 +270,9 @@ img {
     max-height: 350px;
     position: relative;
     padding-right: 5px;
+    overflow-x: hidden;
+    max-width: 100%;
+    margin-bottom: 20px;
 }
 
 .chevron {
@@ -288,6 +309,11 @@ body::-webkit-scrollbar{
     margin: 5px;
     width: 10px;
     background: #ffffff;
+}
+
+::-webkit-scrollbar-track {
+    background: #dbdbdb;
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {

@@ -94,10 +94,14 @@ function SyncList({ userId, handle, token }) {
   const getUncommonBooks = () => {
     if (syncedBefore != undefined && syncedBefore != null) {
       const syncedBookIds = syncedBefore.map((book) => book.book.id);
+      console.log(highlights?.highlights);
       const uncommonBooks = highlights?.highlights?.filter((highlight) => {
-        const bookId = highlight.data.momentsByHandleAndBookId[0].bookId;
+        const bookId = highlight.data.momentsByHandleAndBookId?.[0]?.bookId;
+        console.log("bookId" + bookId);
+        console.log("syncedBookIds" + syncedBookIds);
         return !syncedBookIds.includes(bookId);
       });
+      console.log("uncommonBooks" + uncommonBooks);
       return uncommonBooks;
     }
   };
@@ -159,19 +163,9 @@ function SyncList({ userId, handle, token }) {
               handleSync={handleSyncBook}
             />
           ))
-        ) : highlights?.highlights && highlights?.highlights.length > 0 ? (
-          highlights?.highlights.map((item) => (
-            <Book
-              key={item.data.momentsByHandleAndBookId[0].bookId}
-              content={item}
-              allBooks={highlights?.allBooks}
-              selectedBooks={selectedBooks}
-              handleSync={handleSyncBook}
-            />
-          ))
         ) : (
           <p className="emptySyncContainer">
-            No unsynced finished books with highlights found.
+            No finished books with highlights. Go read some books!
           </p>
         )}
       </div>
@@ -233,15 +227,3 @@ function SyncList({ userId, handle, token }) {
 }
 
 export default SyncList;
-
-//TODO placeholder cover when no cover available, test for bugs, add loading state (optional), add error handling for login, buy me a coffee link (maybe), delete console.logs
-
-//DONE placeholder cover
-//WONT DO loading state
-//DONE delete console.logs
-//DONE error handling login
-//DONE error handling sync
-//DONE message when no books finished with highlights
-//DONE buy me a coffee link
-
-//TODO test for bugs and fix bug

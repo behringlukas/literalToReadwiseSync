@@ -89,6 +89,8 @@ function SyncList({ userId, handle, token }) {
       console.log(error.response.data);
       setError(error);
     }
+
+    setSelectedBooks([]);
   };
 
   const getUncommonBooks = () => {

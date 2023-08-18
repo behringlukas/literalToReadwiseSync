@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Literal to Readwise Sync",
   "description": "Sync your highlights from your books on Literal.club to Readwise.",
-  "version": "1.0",
+  "version": "1.1",
   "action": {
     "default_popup": "popup.html"
   },
